@@ -480,10 +480,21 @@ EXPORT String Tuple::get_str(Field field) const
     TupleVal * val = data ? data->lookup(field, false, false) : nullptr;
     return val ? val->str : ::String();
 }
+#include "runtime.h"
 
 EXPORT void Tuple::set_int(Field field, int x)
 {
-    assert(is_valid_field(field) && field_info[field].type == Int);
+    if (!is_valid_field(field))
+    {
+        AUDERR("Invalid field %d passed to set_int\n", field);
+        return;
+    }
+
+    if (field_info[field].type != Int)
+    {
+        AUDERR("Field %d (%s) is not an Int field\n", field, field_info[field].name);
+        return;
+    }
 
     data = TupleData::copy_on_write(data);
     data->set_int(field, x);
